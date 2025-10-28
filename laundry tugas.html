@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sistem Informasi Laundry — Swipe Horizontal</title>
+  <style>
+    :root{
+      --accent:#2b8aef;
+      --bg:#0f1720;
+      --card:#0b1220;
+      --muted:#9aa7b2;
+      --glass: rgba(255,255,255,0.04);
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(120deg,#071126 0%, #071a2a 60%);color:#e6eef6;overflow:hidden}
+
+    /* Top navigation */
+    .topbar{position:fixed;left:12px;right:12px;top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:30}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#6ad1ff);display:flex;align-items:center;justify-content:center;font-weight:700;color:#052233}
+    nav{display:flex;gap:6px}
+    .nav-btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+    .nav-btn.active{background:linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));box-shadow:0 6px 18px rgba(2,6,23,0.6);}
+
+    /* horizontal container */
+    .hwrap{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth}
+    .hwrap::-webkit-scrollbar{display:none}
+    .section{min-width:100%;height:100vh;flex:0 0 100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;padding:80px 40px}
+
+    /* content cards */
+    .card{width:100%;max-width:1100px;background:rgba(255,255,255,0.03);border-radius:16px;padding:28px;box-shadow:0 12px 40px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+    h1{margin:0 0 8px 0;font-size:28px}
+    p.lead{margin:0;color:var(--muted)}
+
+    /* list of services */
+    .services{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px}
+    .service{padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02)}
+    .service h4{margin:0 0 6px 0}
+    .service p{margin:0;color:var(--muted);font-size:14px}
+
+    /* daftar laundry (table-like) */
+    .list{margin-top:16px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+    .row{display:flex;gap:12px;padding:12px 14px;align-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent)}
+    .row:nth-child(even){background:rgba(255,255,255,0.01)}
+    .col1{width:60px;font-weight:700}
+    .col2{flex:1}
+    .col3{width:140px;text-align:right}
+
+    /* form styles */
+    form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    input,select,textarea{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:8px;color:inherit}
+    textarea{grid-column:span 2;min-height:120px}
+    .btn{padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent),#4bb5ff);border:none;color:#052233;font-weight:700;cursor:pointer}
+
+    /* contact */
+    .contact-grid{display:grid;grid-template-columns:1fr 300px;gap:12px}
+    .contact-item{padding:12px;border-radius:10px;background:rgba(255,255,255,0.02)}
+
+    /* small screens adjustments */
+    @media (max-width:800px){
+      .topbar{left:8px;right:8px}
+      .card{padding:18px}
+      form{grid-template-columns:1fr}
+      .contact-grid{grid-template-columns:1fr}
+    }
+
+    /* page dots */\    
+    .dots{position:fixed;right:14px;bottom:22px;display:flex;flex-direction:column;gap:8px;z-index:40}
+    .dot{width:12px;height:12px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+    .dot.active{background:var(--accent);box-shadow:0 6px 16px rgba(43,138,239,0.18)}
+
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">🏡</div>
+      <div>
+        <div style="font-weight:700">Dinda Laundry</div>
+        <div style="font-size:12px;color:var(--muted)">Cepat • Bersih • Terpercaya</div>
+      </div>
+    </div>
+    <nav aria-label="Main navigation">
+      <button class="nav-btn active" data-target="0">Beranda</button>
+      <button class="nav-btn" data-target="1">Daftar Laundry</button>
+      <button class="nav-btn" data-target="2">Form Pemesanan</button>
+      <button class="nav-btn" data-target="3">Kontak</button>
+    </nav>
+  </div>
+
+  <!-- horizontal wrapper -->
+  <div class="hwrap" id="hwrap">
+    <!-- Section 1: Beranda -->
+    <section class="section" aria-label="Beranda">
+      <div class="card">
+        <h1>Selamat datang di Dinda Laundry 👋</h1>
+        <p class="lead">Layanan laundry cepat dan terpercaya. Geser ke samping, atau klik menu untuk berpindah bagian (tidak menggulir ke bawah).</p>
+        <div class="services">
+          <div class="service">
+            <h4>Cuci Reguler</h4>
+            <p>Proses cepat, pewangi pilihan, ideal untuk pakaian harian.</p>
+          </div>
+          <div class="service">
+            <h4>Cuci Kering (Dry Clean)</h4>
+            <p>Perawatan khusus untuk bahan halus dan jas.</p>
+          </div>
+          <div class="service">
+            <h4>Cuci Karpet</h4>
+            <p>Pembersihan mendalam untuk karpet & permadani.</p>
+          </div>
+          <div class="service">
+            <h4>Setrika & Lipat</h4>
+            <p>Rapi, siap pakai, dikembalikan sesuai permintaan.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Daftar Laundry -->
+    <section class="section" aria-label="Daftar Laundry">
+      <div class="card">
+        <h1>Daftar Paket & Harga</h1>
+        <p class="lead">Pilih paket sesuai kebutuhan. Harga tertera per kg (kecuali disebutkan lain).</p>
+
+        <div class="list" role="list">
+          <div class="row" role="listitem">
+            <div class="col1">1</div>
+            <div class="col2"><strong>Paket Reguler</strong><div style="font-size:13px;color:var(--muted)">Cuci + Pengeringan</div></div>
+            <div class="col3">Rp12.000 / kg</div>
+          </div>
+          <div class="row">
+            <div class="col1">2</div>
+            <div class="col2"><strong>Paket Express</strong><div style="font-size:13px;color:var(--muted)">Selesai 6 jam</div></div>
+            <div class="col3">Rp20.000 / kg</div>
+          </div>
+          <div class="row">
+            <div class="col1">3</div>
+            <div class="col2"><strong>Dry Clean</strong><div style="font-size:13px;color:var(--muted)">Jas, blazer, gaun</div></div>
+            <div class="col3">Mulai Rp35.000</div>
+          </div>
+          <div class="row">
+            <div class="col1">4</div>
+            <div class="col2"><strong>Cuci Karpet</strong><div style="font-size:13px;color:var(--muted)">Estimasi sesuai ukuran</div></div>
+            <div class="col3">Konsultasi</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 3: Form Pemesanan -->
+    <section class="section" aria-label="Form Pemesanan">
+      <div class="card">
+        <h1>Form Pemesanan</h1>
+        <p class="lead">Isi data pemesanan, kami akan konfirmasi via telepon/WA.</p>
+
+        <form id="orderForm" onsubmit="return false">
+          <input type="text" id="name" placeholder="Nama lengkap" required>
+          <input type="tel" id="phone" placeholder="No. HP / WhatsApp" required>
+          <select id="package" required>
+            <option value="">-- Pilih Paket --</option>
+            <option value="reguler">Paket Reguler - Rp12.000/kg</option>
+            <option value="express">Paket Express - Rp20.000/kg</option>
+            <option value="dryclean">Dry Clean - Mulai Rp35.000</option>
+          </select>
+          <input type="number" id="kg" placeholder="Berat (kg)" min="1" required>
+          <textarea id="notes" placeholder="Catatan (mis. pakaian khusus, alergi pewangi, alamat jika jemput) "></textarea>
+          <button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
+        </form>
+
+        <div id="orderResult" style="margin-top:12px;color:var(--muted)"></div>
+      </div>
+    </section>
+
+    <!-- Section 4: Kontak -->
+    <section class="section" aria-label="Kontak">
+      <div class="card">
+        <h1>Kontak & Lokasi</h1>
+        <p class="lead">Hubungi kami untuk penjemputan, pertanyaan, atau bulk order.</p>
+
+        <div class="contact-grid">
+          <div>
+            <div class="contact-item">
+              <strong>Telepon / WA</strong>
+              <div style="color:var(--muted);margin-top:6px">+62 813-8728-9504</div>
+            </div>
+            <div class="contact-item" style="margin-top:8px">
+              <strong>Jam Operasional</strong>
+              <div style="color:var(--muted);margin-top:6px">Senin - Sabtu: 08.00 - 19.00</div>
+            </div>
+            <div class="contact-item" style="margin-top:8px">
+              <strong>Alamat</strong>
+              <div style="color:var(--muted);margin-top:6px">Jl. Batu Ampar No.1R, Jakarta Timur</div>
+            </div>
+          </div>
+          <div>
+            <div class="contact-item" style="height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
+              <div style="font-weight:700;margin-bottom:8px">Lokasi</div>
+              <div class="contact-item" style="height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
+             <div style="font-weight:700;margin-bottom:8px">Lokasi Kami</div>
+             <iframe 
+              src="https://www.google.com/maps?q=https://maps.app.goo.gl/ECAsQFyq5ftp1ezA8&output=embed"
+              width="100%" height="220" style="border:0;border-radius:10px;" allowfullscreen="" loading="lazy"
+             referrerpolicy="no-referrer-when-downgrade">
+             </iframe>
+            <a href="https://maps.app.goo.gl/ECAsQFyq5ftp1ezA8" target="_blank" style="margin-top:6px;color:#4bb5ff;text-decoration:none;">
+                 📍 Buka di Google Maps
+            </a>
+            </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- dots -->
+  <div class="dots" id="dots"></div>
+
+  <script>
+    const container = document.getElementById('hwrap');
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const dotsWrap = document.getElementById('dots');
+    const sections = document.querySelectorAll('.section');
+
+    function makeDots(){
+      dotsWrap.innerHTML = '';
+      sections.forEach((s,i)=>{
+        const d = document.createElement('div');
+        d.className = 'dot' + (i===0? ' active':'');
+        d.dataset.index = i;
+        d.addEventListener('click', ()=>goTo(i));
+        dotsWrap.appendChild(d);
+      })
+    }
+
+    function setActive(index){
+      navBtns.forEach(b=>b.classList.toggle('active', Number(b.dataset.target)===index));
+      document.querySelectorAll('.dot').forEach((d)=>d.classList.toggle('active', Number(d.dataset.index)===index));
+    }
+
+    function goTo(index){
+      const left = index * container.clientWidth;
+      container.scrollTo({left, behavior:'smooth'});
+      setActive(index);
+    }
+
+    // wire nav buttons
+    navBtns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        goTo(Number(btn.dataset.target));
+      })
+    });
+
+    // update active on scroll (debounced)
+    let ticking=false;
+    container.addEventListener('scroll', ()=>{
+      if(ticking) return; ticking=true;
+      window.requestAnimationFrame(()=>{
+        const idx = Math.round(container.scrollLeft / container.clientWidth);
+        setActive(idx);
+        ticking=false;
+      })
+    });
+
+    makeDots();
+
+    // keyboard support
+    window.addEventListener('keydown', (e)=>{
+      const idx = Math.round(container.scrollLeft / container.clientWidth);
+      if(e.key === 'ArrowRight') goTo(Math.min(sections.length-1, idx+1));
+      if(e.key === 'ArrowLeft') goTo(Math.max(0, idx-1));
+    });
+
+    // basic order submit (client-side demo)
+    function submitOrder(){
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const pack = document.getElementById('package').value;
+      const kg = document.getElementById('kg').value;
+      if(!name || !phone || !pack || !kg){
+        document.getElementById('orderResult').textContent = 'Lengkapi semua field sebelum mengirim.';
+        return;
+      }
+      const text = `Terima kasih ${name}! Pesanan Anda untuk ${kg} kg (${pack}) telah diterima. Kami akan menghubungi di ${phone} untuk konfirmasi.`;
+      document.getElementById('orderResult').textContent = text;
+      // clear form for demo
+      document.getElementById('orderForm').reset();
+    }
+
+    // handle resize to keep sections aligned
+    let resizeTimer;
+    window.addEventListener('resize', ()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(()=>{
+        const idx = Math.round(container.scrollLeft / container.clientWidth);
+        goTo(idx);
+      },120);
+    });
+
+    // initial focus (for accessibility)
+    document.querySelector('.nav-btn').setAttribute('aria-current','true');
+
+  </script>
+</body>
+</html>
